@@ -42,8 +42,6 @@ ENV NODE_ENV=production \
 
 EXPOSE 3000
 
-VOLUME ["/data"]
-
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
   CMD node -e "\
     require('http').get('http://localhost:3000/', r => \
