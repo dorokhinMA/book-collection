@@ -1,0 +1,143 @@
+<%- include('partials/head') %>
+<%- include('partials/nav') %>
+
+<%
+function pageUrl(p) {
+  let q = '?page=' + p;
+  if (search)        q += '&search=' + encodeURIComponent(search);
+  if (selectedGenre) q += '&genre='  + encodeURIComponent(selectedGenre);
+  return '/books' + q;
+}
+function pagerPages(current, total) {
+  if (total <= 7) return Array.from({length: total}, (_, i) => i + 1);
+  const pages = new Set([1, total, current, current-1, current+1, current-2, current+2]);
+  return [...pages].filter(p => p >= 1 && p <= total).sort((a,b) => a-b);
+}
+const fromBook = (currentPage - 1) * 6 + 1;
+const toBook   = Math.min(currentPage * 6, total);
+%>
+
+<main class="container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Моя коллекция</h1>
+      <p class="page-subtitle">
+        <% if (total === 0) { %>Нет книг<% } else { %>
+          <%= fromBook %>–<%= toBook %> из <%= total %> книг<% if (search || selectedGenre) { %> (по фильтру)<% } %>
+        <% } %>
+      </p>
+    </div>
+  </div>
+
+  <!-- Search & Filter -->
+  <form class="search-bar" action="/books" method="GET">
+    <div class="search-input-wrap">
+      <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input
+        type="text"
+        name="search"
+        class="search-input"
+        placeholder="Поиск по названию или автору..."
+        value="<%= search %>"
+        autocomplete="off"
+      >
+    </div>
+    <select name="genre" class="filter-select" onchange="this.form.submit()">
+      <option value="">Все жанры</option>
+      <% genres.forEach(g => { %>
+        <option value="<%= g %>" <%= selectedGenre === g ? 'selected' : '' %>><%= g %></option>
+      <% }) %>
+    </select>
+    <button type="submit" class="btn btn-secondary">Найти</button>
+    <% if (search || selectedGenre) { %>
+      <a href="/books" class="btn btn-ghost">Сбросить</a>
+    <% } %>
+  </form>
+
+  <!-- Genre chips -->
+  <% if (genres.length > 0) { %>
+  <div class="genre-chips">
+    <a href="/books" class="chip <%= !selectedGenre ? 'chip-active' : '' %>">Все</a>
+    <% genres.forEach(g => { %>
+      <a href="/books?genre=<%= encodeURIComponent(g) %>" class="chip <%= selectedGenre === g ? 'chip-active' : '' %>"><%= g %></a>
+    <% }) %>
+  </div>
+  <% } %>
+
+  <!-- Books grid -->
+  <% if (books.length === 0) { %>
+    <div class="empty-state">
+      <div class="empty-icon">🔍</div>
+      <h3>Ничего не найдено</h3>
+      <p>Попробуйте изменить параметры поиска или <a href="/books/new">добавьте новую книгу</a></p>
+    </div>
+  <% } else { %>
+  <div class="books-grid">
+    <% books.forEach(book => { %>
+    <article class="book-card">
+      <a href="/books/<%= book.id %>" class="book-card-link">
+        <div class="book-cover">
+          <% if (book.cover) { %>
+            <img src="<%= book.cover %>" alt="<%= book.title %>" loading="lazy" onerror="this.parentElement.classList.add('no-cover'); this.remove()">
+          <% } else { %>
+            <div class="cover-placeholder">
+              <span class="cover-letter"><%= book.title[0] %></span>
+            </div>
+          <% } %>
+          <div class="book-rating">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <%= book.rating.toFixed(1) %>
+          </div>
+        </div>
+        <div class="book-info">
+          <span class="book-genre"><%= book.genre %></span>
+          <h3 class="book-title"><%= book.title %></h3>
+          <p class="book-author"><%= book.author %></p>
+          <span class="book-year"><%= book.year %></span>
+        </div>
+      </a>
+      <div class="book-actions">
+        <a href="/books/<%= book.id %>/edit" class="action-btn action-edit" title="Редактировать">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </a>
+        <form action="/books/<%= book.id %>?_method=DELETE" method="POST" class="inline-form" onsubmit="return confirm('Удалить «<%= book.title %>»?')">
+          <button type="submit" class="action-btn action-delete" title="Удалить">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          </button>
+        </form>
+      </div>
+    </article>
+    <% }) %>
+  </div>
+  <% } %>
+
+  <!-- Pagination -->
+  <% if (totalPages > 1) { %>
+  <nav class="pagination" aria-label="Страницы">
+    <a href="<%= pageUrl(currentPage - 1) %>" class="page-btn page-prev <%= currentPage === 1 ? 'disabled' : '' %>" aria-label="Предыдущая">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </a>
+
+    <div class="page-numbers">
+      <% const pages = pagerPages(currentPage, totalPages); %>
+      <% let prev = 0; %>
+      <% pages.forEach(p => { %>
+        <% if (prev && p - prev > 1) { %><span class="page-ellipsis">…</span><% } %>
+        <a href="<%= pageUrl(p) %>" class="page-btn <%= p === currentPage ? 'page-active' : '' %>"><%= p %></a>
+        <% prev = p; %>
+      <% }); %>
+    </div>
+
+    <a href="<%= pageUrl(currentPage + 1) %>" class="page-btn page-next <%= currentPage === totalPages ? 'disabled' : '' %>" aria-label="Следующая">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </a>
+  </nav>
+  <% } %>
+</main>
+
+<!-- FAB: shown on mobile, hidden on desktop via CSS -->
+<a href="/books/new" class="fab" aria-label="Добавить книгу">
+  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+</a>
+
+<%- include('partials/foot') %>

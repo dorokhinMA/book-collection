@@ -1,0 +1,22 @@
+node_modules
+npm-debug.log*
+
+# SQLite database files — stored in Docker volume, not the image
+*.db
+*.db-shm
+*.db-wal
+
+# Dev/test artefacts
+tests/
+coverage/
+.nyc_output/
+
+# Version control & editor
+.git/
+.gitignore
+.idea/
+.vscode/
+*.DS_Store
+
+# Docs
+*.md

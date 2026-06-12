@@ -1,0 +1,83 @@
+<%- include('partials/head', { pageTitle: book.title }) %>
+<%- include('partials/nav') %>
+
+<main class="container container-narrow">
+  <a href="/books" class="back-link">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    Назад к коллекции
+  </a>
+
+  <div class="detail-card">
+    <div class="detail-cover-col">
+      <div class="detail-cover">
+        <% if (book.cover) { %>
+          <img src="<%= book.cover %>" alt="<%= book.title %>" onerror="this.parentElement.classList.add('no-cover'); this.remove()">
+        <% } else { %>
+          <div class="cover-placeholder large">
+            <span class="cover-letter"><%= book.title[0] %></span>
+          </div>
+        <% } %>
+      </div>
+      <!-- Desktop sidebar actions (hidden on mobile, replaced by sticky bar) -->
+      <div class="detail-actions">
+        <a href="/books/<%= book.id %>/edit" class="btn btn-secondary btn-block">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Редактировать
+        </a>
+        <form action="/books/<%= book.id %>?_method=DELETE" method="POST" onsubmit="return confirm('Удалить «<%= book.title %>»?')">
+          <button type="submit" class="btn btn-danger btn-block">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            Удалить книгу
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="detail-info-col">
+      <span class="book-genre book-genre-lg"><%= book.genre %></span>
+      <h1 class="detail-title"><%= book.title %></h1>
+      <p class="detail-author"><%= book.author %></p>
+
+      <div class="detail-meta">
+        <div class="meta-item">
+          <span class="meta-label">Год</span>
+          <span class="meta-value"><%= book.year %></span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Рейтинг</span>
+          <span class="meta-value rating-value">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <%= book.rating.toFixed(1) %> / 10
+          </span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Добавлена</span>
+          <span class="meta-value"><%= new Date(book.created_at).toLocaleDateString('ru-RU', {day:'numeric', month:'long', year:'numeric'}) %></span>
+        </div>
+      </div>
+
+      <div class="rating-bar-wrap">
+        <div class="rating-bar">
+          <div class="rating-fill" style="width: <%= (book.rating / 10 * 100).toFixed(0) %>%"></div>
+        </div>
+        <span class="rating-percent"><%= (book.rating / 10 * 100).toFixed(0) %>%</span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Mobile sticky action bar (visible only on ≤768px via CSS) -->
+<div class="detail-sticky">
+  <a href="/books/<%= book.id %>/edit" class="btn btn-secondary" style="flex:1">
+    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+    Редактировать
+  </a>
+  <form action="/books/<%= book.id %>?_method=DELETE" method="POST" style="flex:1" onsubmit="return confirm('Удалить «<%= book.title %>»?')">
+    <button type="submit" class="btn btn-danger btn-block">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      Удалить
+    </button>
+  </form>
+</div>
+
+<%- include('partials/foot') %>

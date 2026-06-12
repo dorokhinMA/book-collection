@@ -1,0 +1,155 @@
+<%- include('partials/head', { pageTitle: title }) %>
+<%- include('partials/nav') %>
+
+<main class="container container-narrow">
+  <div class="page-header">
+    <a href="/books" class="back-link">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Назад
+    </a>
+    <h1 class="page-title"><%= title %></h1>
+  </div>
+
+  <div class="form-card">
+    <form action="<%= action %>" method="POST" class="book-form" id="bookForm">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="title">Название <span class="required">*</span></label>
+          <input
+            type="text"
+            id="title"
+            name="title"
+            class="form-control"
+            value="<%= book ? book.title : '' %>"
+            placeholder="Название книги"
+            required
+          >
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="author">Автор <span class="required">*</span></label>
+          <input
+            type="text"
+            id="author"
+            name="author"
+            class="form-control"
+            value="<%= book ? book.author : '' %>"
+            placeholder="Имя автора"
+            required
+          >
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="genre">Жанр <span class="required">*</span></label>
+          <select id="genre" name="genre" class="form-control" onchange="toggleCustomGenre(this)">
+            <option value="">— Выбрать жанр —</option>
+            <% genres.forEach(g => { %>
+              <option value="<%= g %>" <%= (book && book.genre === g) ? 'selected' : '' %>><%= g %></option>
+            <% }) %>
+            <option value="__new__" <%= (book && !genres.includes(book.genre)) ? 'selected' : '' %>>+ Новый жанр</option>
+          </select>
+        </div>
+        <div class="form-group" id="customGenreGroup" style="<%= (book && !genres.includes(book.genre)) ? '' : 'display:none' %>">
+          <label class="form-label" for="genre_new">Новый жанр</label>
+          <input
+            type="text"
+            id="genre_new"
+            name="genre_new"
+            class="form-control"
+            value="<%= (book && !genres.includes(book.genre)) ? book.genre : '' %>"
+            placeholder="Введите жанр"
+          >
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="year">Год издания <span class="required">*</span></label>
+          <input
+            type="number"
+            id="year"
+            name="year"
+            class="form-control"
+            value="<%= book ? book.year : new Date().getFullYear() %>"
+            min="1000"
+            max="<%= new Date().getFullYear() %>"
+            required
+          >
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="rating">
+            Рейтинг <span class="required">*</span>
+            <span class="rating-preview" id="ratingPreview"><%= book ? book.rating.toFixed(1) : '5.0' %></span>
+          </label>
+          <div class="range-wrap">
+            <input
+              type="range"
+              id="rating"
+              name="rating"
+              class="form-range"
+              value="<%= book ? book.rating : 5 %>"
+              min="0"
+              max="10"
+              step="0.1"
+              oninput="document.getElementById('ratingPreview').textContent = parseFloat(this.value).toFixed(1)"
+            >
+            <div class="range-labels"><span>0</span><span>5</span><span>10</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="cover">URL обложки</label>
+        <div class="cover-input-row">
+          <input
+            type="url"
+            id="cover"
+            name="cover"
+            class="form-control"
+            value="<%= book ? (book.cover || '') : '' %>"
+            placeholder="https://example.com/cover.jpg"
+            oninput="previewCover(this.value)"
+          >
+          <div class="cover-thumb" id="coverThumb">
+            <% if (book && book.cover) { %>
+              <img src="<%= book.cover %>" alt="Обложка" onerror="this.parentElement.classList.add('empty')">
+            <% } %>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <a href="/books" class="btn btn-ghost">Отмена</a>
+        <button type="submit" class="btn btn-primary btn-lg">
+          <%= book ? 'Сохранить изменения' : 'Добавить книгу' %>
+        </button>
+      </div>
+    </form>
+  </div>
+</main>
+
+<script>
+function toggleCustomGenre(select) {
+  const group = document.getElementById('customGenreGroup');
+  const input = document.getElementById('genre_new');
+  if (select.value === '__new__') {
+    group.style.display = '';
+    input.required = true;
+    input.focus();
+  } else {
+    group.style.display = 'none';
+    input.required = false;
+    input.value = '';
+  }
+}
+
+function previewCover(url) {
+  const thumb = document.getElementById('coverThumb');
+  if (!url) { thumb.innerHTML = ''; thumb.classList.remove('has-image'); return; }
+  thumb.classList.add('has-image');
+  thumb.innerHTML = `<img src="${url}" alt="Обложка" onerror="this.parentElement.innerHTML=''; this.parentElement.classList.remove('has-image')">`;
+}
+</script>
+
+<%- include('partials/foot') %>
